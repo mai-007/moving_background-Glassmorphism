@@ -4,7 +4,6 @@
 import React, { useEffect } from 'react';
 import * as PIXI from 'pixi.js';
 
-
 const PixiCanvas = () => {
   useEffect(() => {
     const app = new PIXI.Application({
@@ -15,14 +14,14 @@ const PixiCanvas = () => {
     document.getElementById('pixi-canvas-container').appendChild(app.view);
 
     const circles = [];
-    const numberOfCircles = 10;
+    const numberOfCircles = 3; // Change the number of circles to 3
 
     const colors = [0xFE9562, 0xFD6696, 0xD964EF];
     const backgroundColor = 0xffffff;
 
     for (let i = 0; i < numberOfCircles; i++) {
       const circle = new PIXI.Graphics();
-      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const randomColor = colors[i]; // Use predefined colors
 
       circle.beginFill(randomColor);
       circle.drawCircle(0, 0, Math.random() * 50 + 30); // Random size between 30 and 80
