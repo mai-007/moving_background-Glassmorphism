@@ -2,6 +2,7 @@
 
 import React from 'react';
 import PixiCanvas from '../components/PixiCanvas';
+import './global.css';
 
 const Home = () => {
   return (
