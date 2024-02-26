@@ -1,93 +1,116 @@
 'use client'
+// OrbCanvas.js
+import React, { useEffect, useRef } from 'react';
+import { Application, Graphics } from 'pixi.js';
+import { KawaseBlurFilter } from '@pixi/filter-kawase-blur';
 
-// components/PixiCanvas.js
-import React, { useEffect } from 'react';
-import * as PIXI from 'pixi.js';
+const random = (min, max) => Math.random() * (max - min) + min;
 
-const PixiCanvas = () => {
-  useEffect(() => {
-    const app = new PIXI.Application({
-      width: window.innerWidth,
-      height: window.innerHeight,
-      transparent: true,
-    });
-    document.getElementById('pixi-canvas-container').appendChild(app.view);
+const map = (n, start1, end1, start2, end2) =>
+  ((n - start1) / (end1 - start1)) * (end2 - start2) + start2;
 
-    const circles = [];
-    const numberOfCircles = 3; // Change the number of circles to 3
+class Orb {
+  constructor(app) {
+    this.bounds = this.setBounds();
+    this.x = random(this.bounds.x.min, this.bounds.x.max);
+    this.y = random(this.bounds.y.min, this.bounds.y.max);
+    this.scale = 1;
+    this.fill = randomColor();
+    this.radius = random(window.innerHeight / 6, window.innerHeight / 3);
+    this.xOff = random(0, 1000);
+    this.yOff = random(0, 1000);
+    this.inc = 0.002;
+    this.graphics = new Graphics();
+  }
 
-    const colors = [0xFE9562, 0xFD6696, 0xD964EF];
-    const backgroundColor = 0xffffff;
+  setBounds() {
+    const maxDist =
+      window.innerWidth < 1000 ? window.innerWidth / 3 : window.innerWidth / 5;
+    const originX = window.innerWidth / 1.25;
+    const originY =
+      window.innerWidth < 1000
+        ? window.innerHeight
+        : window.innerHeight / 1.375;
 
-    for (let i = 0; i < numberOfCircles; i++) {
-      const circle = new PIXI.Graphics();
-      const randomColor = colors[i]; // Use predefined colors
-
-      circle.beginFill(randomColor);
-      circle.drawCircle(0, 0, Math.random() * 50 + 30); // Random size between 30 and 80
-      circle.endFill();
-
-      circle.x = Math.random() * app.screen.width;
-      circle.y = Math.random() * app.screen.height;
-
-      app.stage.addChild(circle);
-      circles.push(circle);
-    }
-
-    const handleMouseMove = (event) => {
-      circles.forEach((circle) => {
-        const distance = Math.sqrt(
-          Math.pow(event.clientX - circle.x, 2) + Math.pow(event.clientY - circle.y, 2)
-        );
-        const maxDistance = 200;
-        const scaleFactor = Math.max(1 - distance / maxDistance, 0.1);
-
-        circle.scale.set(scaleFactor);
-      });
+    return {
+      x: { min: originX - maxDist, max: originX + maxDist },
+      y: { min: originY - maxDist, max: originY + maxDist },
     };
+  }
 
-    document.addEventListener('mousemove', handleMouseMove);
+  update() {
+    const xNoise = Math.random() * 2 - 1;
+    const yNoise = Math.random() * 2 - 1;
+    const scaleNoise = Math.random() * 2 - 1;
 
-    const animateCircles = () => {
-      circles.forEach((circle) => {
-        if (app.screen) {
-          const jumpRate = 5; // Higher values make the circles jump more
-          circle.x += Math.sin(circle.y * 0.02) * jumpRate;
-          circle.y += 1;
+    this.x = map(xNoise, -1, 1, this.bounds.x.min, this.bounds.x.max);
+    this.y = map(yNoise, -1, 1, this.bounds.y.min, this.bounds.y.max);
+    this.scale = map(scaleNoise, -1, 1, 0.5, 1);
 
-          if (circle.y > app.screen.height) {
-            circle.y = 0;
-          }
+    this.xOff += this.inc;
+    this.yOff += this.inc;
+  }
 
-          // Randomly change the size
-          if (Math.random() < 0.01) {
-            circle.scale.set(Math.random() * 0.5 + 0.5); // Random scale between 0.5 and 1
-          }
-        }
-      });
+  render() {
+    this.graphics.x = this.x;
+    this.graphics.y = this.y;
+    this.graphics.scale.set(this.scale);
 
-      requestAnimationFrame(animateCircles);
-    };
+    this.graphics.clear();
+    this.graphics.beginFill(this.fill);
+    this.graphics.drawCircle(0, 0, this.radius);
+    this.graphics.endFill();
+  }
+}
 
-    animateCircles();
+const randomColor = () => {
+  const colorChoices = [
+    0x4CAF50, // Green
+    0xFFC107, // Amber
+    0x2196F3, // Blue
+  ];
 
-    const handleResize = () => {
-      if (app.screen) {
-        app.renderer.resize(window.innerWidth, window.innerHeight);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup function
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      document.removeEventListener('mousemove', handleMouseMove);
-      app.destroy(true);
-    };
-  }, []); // Run only once on mount
-
-  return <div id="pixi-canvas-container" />;
+  return colorChoices[Math.floor(Math.random() * colorChoices.length)];
 };
 
-export default PixiCanvas;
+const OrbCanvas = () => {
+  const appRef = useRef(null);
+  const orbs = useRef([]);
+
+  useEffect(() => {
+    const app = new Application({
+      resizeTo: window,
+      transparent: true,
+    });
+
+    appRef.current.appendChild(app.view);
+
+    // Initialize orbs
+    for (let i = 0; i < 10; i++) {
+      const orb = new Orb(app);
+      app.stage.addChild(orb.graphics);
+      orbs.current.push(orb);
+    }
+
+    // Animate orbs
+    app.ticker.add(() => {
+      orbs.current.forEach((orb) => {
+        orb.update();
+        orb.render();
+      });
+    });
+
+    // Apply filter after initialization
+    app.stage.filters = [new KawaseBlurFilter(30, 10, true)];
+
+    // Cleanup
+    return () => {
+      app.destroy(true);
+      orbs.current = [];
+    };
+  }, []);
+
+  return <div ref={appRef} />;
+};
+
+export default OrbCanvas;

@@ -9,15 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@pixi/filter-kawase-blur": "^3.2.0",
-    "@tweenjs/tween.js": "^23.1.1",
-    "debounce": "^2.0.0",
-    "hsl": "^0.1.1",
-    "hsl-to-hex": "^1.0.0",
+    "framer-motion": "^11.0.6",
     "next": "14.1.0",
-    "pixi.js": "^7.4.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "simplex-noise": "^4.0.1"
+    "react": "^18.2.0",
+    "react-dom": "^18"
   }
 }
