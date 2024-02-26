@@ -1,0 +1,22 @@
+{
+  "name": "my-next-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@pixi/filter-kawase-blur": "^3.2.0",
+    "debounce": "^2.0.0",
+    "hsl": "^0.1.1",
+    "hsl-to-hex": "^1.0.0",
+    "next": "14.1.0",
+    "pixi.js": "^7.4.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "simplex-noise": "^4.0.1"
+  }
+}
